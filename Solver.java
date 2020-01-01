@@ -5,6 +5,8 @@ import java.util.Iterator;
 
 public class Solver {
 
+    // WTH only 99.. there's a timing fix by 1.1 I need to do....
+
     // Opimization Tips
 
     // To do
@@ -75,6 +77,25 @@ public class Solver {
         boolean solvalt = ansalt.isGoal();
 
         while (!solvans && !solvalt) {
+            /////////////////////////
+            Iterable<Board> iterablealt = ansalt.neighbors();
+            Iterator<Board> italt = iterablealt.iterator();
+            while (italt.hasNext()) {
+                Node neigh = new Node();
+                neigh.b = italt.next();
+                if (nodealt.prev != null && neigh.b.equals(nodealt.prev.b))
+                    continue;
+                neigh.prev = nodealt;
+                neigh.moves = neigh.prev.moves + 1;
+                neigh.manhatten = neigh.b.manhattan();
+                minPQalt.insert(neigh);
+            }
+            nodealt = minPQalt.delMin();
+            ansalt = nodealt.b;
+            solvalt = ansalt.isGoal();
+            if (solvalt) {
+                break;
+            }
             //////////////////////
             Iterable<Board> iterable = ans.neighbors();
             Iterator<Board> it = iterable.iterator();
@@ -93,23 +114,8 @@ public class Solver {
             }
             node = minPQ.delMin();
             ans = node.b;
-            /////////////////////
-            Iterable<Board> iterablealt = ansalt.neighbors();
-            Iterator<Board> italt = iterablealt.iterator();
-            while (italt.hasNext()) {
-                Node neigh = new Node();
-                neigh.b = italt.next();
-                if (nodealt.prev != null && neigh.b.equals(nodealt.prev.b))
-                    continue;
-                neigh.prev = nodealt;
-                neigh.moves = neigh.prev.moves + 1;
-                neigh.manhatten = neigh.b.manhattan();
-                minPQalt.insert(neigh);
-            }
-            nodealt = minPQalt.delMin();
-            ansalt = nodealt.b;
             solvans = ans.isGoal();
-            solvalt = ansalt.isGoal();
+            /////////////////////
         }
         if (solvans) {
             // totalMoves = 0;
@@ -126,6 +132,7 @@ public class Solver {
         }
         else {
             totalMoves = -1;
+            gameTree = null;
         }
 
     }

@@ -1,5 +1,4 @@
-import edu.princeton.cs.algs4.Stack;
-import edu.princeton.cs.algs4.StdRandom;
+import edu.princeton.cs.algs4.Queue;
 
 public class Board {
     private int[][] tiles;
@@ -43,13 +42,15 @@ public class Board {
 
     // number of tiles out of place
     public int hamming() {
-        int index = 1;
+
+        // instead of use running index
+        // i'll directly compute it using:
+        // (j + 1) + (i * n)
         int outOfPlace = 0;
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
-                if (tiles[i][j] != index && tiles[i][j] != 0)
+                if ((tiles[i][j] != (j + 1) + (i * n)) && tiles[i][j] != 0)
                     outOfPlace++;
-                index++;
             }
         }
         return outOfPlace;
@@ -57,16 +58,16 @@ public class Board {
 
     // sum of Manhattan distances between tiles and goal
     public int manhattan() {
-        int index = 1;
         int outOfPlace = 0;
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
+                // storing the index so i don't have to recompute it
+                int index = (j + 1) + (i * n); // the ideal number there
                 if (tiles[i][j] != index && tiles[i][j] != 0) {
-                    int idealrow = index / n;
-                    int idealcolumn = (index - 1) % n;
+                    int idealrow = (tiles[i][j] - 1) / n;
+                    int idealcolumn = (tiles[i][j] - 1) % n;
                     outOfPlace += (Math.abs((idealrow - i)) + Math.abs((idealcolumn - j)));
                 }
-                index++;
             }
         }
         return outOfPlace;
@@ -139,7 +140,7 @@ public class Board {
     // all neighboring boards
     public Iterable<Board> neighbors() {
 
-        Stack<Board> st = new Stack<Board>();
+        Queue<Board> q = new Queue<>();
 
         int row = zy;
         int col = zx;
@@ -162,56 +163,88 @@ public class Board {
             exch(tiles, row, col, row + 1, col);
             Board bd = new Board(tiles);
             exch(tiles, row, col, row + 1, col);
-            st.push(bd);
+            q.enqueue(bd);
         }
         else if (row == (n - 1)) {
             exch(tiles, row, col, row - 1, col);
             Board bd = new Board(tiles);
             exch(tiles, row, col, row - 1, col);
-            st.push(bd);
+            q.enqueue(bd);
         }
         else {
 
             exch(tiles, row, col, row - 1, col);
             Board bd = new Board(tiles);
             exch(tiles, row, col, row - 1, col);
-            st.push(bd);
+            q.enqueue(bd);
 
             exch(tiles, row, col, row + 1, col);
-            Board bd2 = new Board(tiles);
+            bd = new Board(tiles);
             exch(tiles, row, col, row + 1, col);
-            st.push(bd2);
+            q.enqueue(bd);
         }
 
         if (col == 0) {
             exch(tiles, row, col, row, col + 1);
             Board bd = new Board(tiles);
             exch(tiles, row, col, row, col + 1);
-            st.push(bd);
+            q.enqueue(bd);
         }
         else if (col == (n - 1)) {
             exch(tiles, row, col, row, col - 1);
             Board bd = new Board(tiles);
             exch(tiles, row, col, row, col - 1);
-            st.push(bd);
+            q.enqueue(bd);
         }
         else {
             exch(tiles, row, col, row, col + 1);
             Board bd = new Board(tiles);
             exch(tiles, row, col, row, col + 1);
-            st.push(bd);
+            q.enqueue(bd);
 
             exch(tiles, row, col, row, col - 1);
-            Board bd2 = new Board(tiles);
+            bd = new Board(tiles);
             exch(tiles, row, col, row, col - 1);
-            st.push(bd2);
+            q.enqueue(bd);
         }
 
-        return st;
+        return q;
     }
 
     // a board that is obtained by exchanging any pair of tiles
     public Board twin() {
+
+        int x1 = 0;
+        int y1 = 0;
+        if (tiles[x1][y1] == 0) {
+            x1++;
+            y1++;
+        }
+        int x2;
+        int y2 = y1;
+        if (x1 == 0) {
+            x2 = x1 + 1;
+        }
+        else {
+            x2 = x1 - 1;
+        }
+/*      // (x1 == n - 1) //// else if condition
+        else { // The else if and if can be combined because it ain't matter
+            x2 = x1 + 1;
+        }*/
+        if (tiles[x2][y2] == 0) {
+            x2 = x1;
+            if (y1 == 0) {
+                y2 = y1 + 1;
+            }
+            else if (y1 == n - 1) {
+                y2 = y1 - 1;
+            }
+        }
+
+        // The twin method should return the same regardless of its calling order
+
+        /*
         int x1 = StdRandom.uniform(0, n);
         int y1 = StdRandom.uniform(0, n);
 
@@ -220,13 +253,52 @@ public class Board {
             y1 = StdRandom.uniform(0, n);
         }
 
-        int x2 = StdRandom.uniform(0, n);
-        int y2 = StdRandom.uniform(0, n);
 
-        while (tiles[x1][y1] == 0 || tiles[x1][y1] == tiles[x2][y2]) {
-            x2 = StdRandom.uniform(0, n);
-            y2 = StdRandom.uniform(0, n);
-        }
+        int x2 = x1;
+        int y2 = y1;
+        do {
+            // USE RNJESUS FOR PICKING TWINS
+            // BWAHAHA
+
+            int randpicker = StdRandom.uniform(0, 2);
+            if (randpicker == 0) {
+                if (x1 == 0) {
+                    x2 = x1 + 1;
+                }
+                else if (x1 == n - 1) {
+                    x2 = x1 - 1;
+                }
+                else {
+                    int rand = StdRandom.uniform(0, 2);
+                    if (rand == 0) {
+                        x2 = x1 + 1;
+                    }
+                    else {
+                        x2 = x1 - 1;
+                    }
+                }
+            }
+            else {
+                if (y1 == 0) {
+                    y2 = y1 + 1;
+                }
+                else if (y1 == n - 1) {
+                    y2 = y1 - 1;
+                }
+                else {
+                    int rand = StdRandom.uniform(0, 2);
+                    if (rand == 0) {
+                        y2 = y1 + 1;
+                    }
+                    else {
+                        y2 = y1 - 1;
+                    }
+                }
+            }
+
+            // the blank tiles is not a tile
+        } while (tiles[x2][y2] == 0);
+        */
 
         exch(tiles, x1, y1, x2, y2);
         Board bd = new Board(tiles);
